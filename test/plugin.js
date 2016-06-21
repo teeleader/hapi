@@ -12,7 +12,7 @@ const Hoek = require('hoek');
 const Inert = require('inert');
 const Lab = require('lab');
 const Vision = require('vision');
-
+const Joi = require('joi');
 
 // Declare internals
 
@@ -1960,6 +1960,217 @@ describe('Plugin', () => {
                     done();
                 });
             });
+        });
+
+        it('validates valid options', (done) => {
+
+            const a = function (srv, options, next) {
+
+                expect(options.path).to.be.a.string().and.equal('TEST');
+                next();
+            };
+            a.attributes = {
+                name: 'a',
+                validate: {
+                    schema: {
+                        path: Joi.string().uppercase().required()
+                    }
+                }
+            };
+
+            const server = new Hapi.Server();
+            server.connection();
+
+            server.register({
+                register: a,
+                options: {
+                    path: 'test'
+                }
+            }, (err) => {
+
+                expect(err).to.not.exist();
+                done();
+            });
+        });
+
+        it('throws on invalid validate attributes', (done) => {
+
+            const a = function (srv, options, next) {
+
+                next();
+            };
+            a.attributes = {
+                name: 'a',
+                validate: []
+            };
+
+            const server = new Hapi.Server();
+            server.connection();
+
+            expect(() => {
+
+                server.register(a, () => { });
+            }).to.throw();
+            done();
+        });
+
+        it('throws on invalid validate schema', (done) => {
+
+            const a = function (srv, options, next) {
+
+                next();
+            };
+            a.attributes = {
+                name: 'a',
+                validate: {
+                    schema: []
+                }
+            };
+
+            const server = new Hapi.Server();
+            server.connection();
+
+            expect(() => {
+
+                server.register(a, () => { });
+            }).to.throw();
+            done();
+        });
+
+        it('throws on invalid validate failAction', (done) => {
+
+            const a = function (srv, options, next) {
+
+                next();
+            };
+            a.attributes = {
+                name: 'a',
+                validate: {
+                    schema: {
+                        path: Joi.string().required()
+                    },
+                    failAction: 'invalid'
+                }
+            };
+
+            const server = new Hapi.Server();
+            server.connection();
+
+            expect(() => {
+
+                server.register(a, () => { });
+            }).to.throw();
+            done();
+        });
+
+        it('throws on invalid options (failAction: error)', (done) => {
+
+            const a = function (srv, options, next) {
+
+                next();
+            };
+            a.attributes = {
+                name: 'a',
+                validate: {
+                    schema: {
+                        path: Joi.string().required()
+                    }
+                }
+            };
+
+            const server = new Hapi.Server();
+            server.connection();
+
+            expect(() => {
+
+                server.register(a, () => { });
+            }).to.throw();
+            done();
+        });
+
+        it('logs error on invalid options (failAction: log)', (done) => {
+
+            return done(new Error('Not yet implemented'));
+            const a = function (srv, options, next) {
+
+                next();
+            };
+            a.attributes = {
+                name: 'a',
+                validate: {
+                    schema: {
+                        path: Joi.string().required()
+                    },
+                    failAction: 'log'
+                }
+            };
+
+            const server = new Hapi.Server();
+            server.connection();
+            // expect(() => {
+
+            //     server.register(a, () => { });
+            // }).to.throw();
+            // done();
+
+            // const handler = function (request, reply) {
+
+            //     const item = request.getLog('validation')[0];
+            //     return reply(item);
+            // };
+
+            // const server = new Hapi.Server();
+            // server.connection();
+            // server.route({
+            //     method: 'GET',
+            //     path: '/',
+            //     handler: handler,
+            //     config: {
+            //         validate: {
+            //             query: {
+            //                 a: Joi.string().min(2)
+            //             },
+            //             failAction: 'log'
+            //         }
+            //     }
+            // });
+
+            // server.inject('/?a=1', (res) => {
+
+            //     expect(res.statusCode).to.equal(200);
+            //     expect(res.result.data.output.payload.message).to.equal('child "a" fails because ["a" length must be at least 2 characters long]');
+            //     done();
+            // });
+        });
+
+        it('throws multiple errors on invalid options (Joi option abortEarly: false)', (done) => {
+
+            return done(new Error('Not yet implemented'));
+            const a = function (srv, options, next) {
+
+                next();
+            };
+            a.attributes = {
+                name: 'a',
+                validate: {
+                    schema: {
+                        path: Joi.string().required(),
+                        age: Joi.number().required()
+                    },
+                    options: {
+                        abortEarly: false
+                    }
+                }
+            };
+
+            const server = new Hapi.Server();
+            server.connection();
+
+            expect(() => {
+
+                server.register(a, () => { });
+            }).to.throw();
+            done();
         });
     });
 
